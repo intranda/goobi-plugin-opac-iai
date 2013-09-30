@@ -111,7 +111,7 @@ public class IAIOpacImport implements IOpacPlugin {
         // if (isMultivolume()) {
         if (getOpacDocType().isMultiVolume()) {
             /* Sammelband-PPN ermitteln */
-            String multiVolumePpn = getPpnFromParent(myFirstHit, "036D", "9");
+            String multiVolumePpn = getPpnFromParent(myFirstHit, "036F", "9");
             if (multiVolumePpn != "") {
                 /* Sammelband aus dem Opac holen */
 
