@@ -681,7 +681,7 @@ public class IAIOpacImport implements IOpacPlugin {
 
     @Override
     public String getTitle() {
-        return "PICA";
+        return "IAI";
     }
 
     @Override
