@@ -19,7 +19,7 @@
 
 
 	<path id="classpath">
-		<fileset dir="/opt/digiverso/goobilibs/lib" />
+		<fileset dir="/opt/digiverso/goobi-193/lib" />
 		<fileset dir="/opt/digiverso/libs" />
 	</path>
 
@@ -40,7 +40,7 @@
 	<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask" classpathref="pmd.classpath">
 	</taskdef>
 
-	
+
 	<tstamp>
 		<format property="tstamped-file-name" pattern="yyyy-MM-dd" locale="en,UK" />
 	</tstamp>
@@ -106,7 +106,7 @@
 
 	<target name="compile">
 		<echo>Using jenkins compiler</echo>
-		<javac destdir="${dir.build}" includeantruntime="false" debug="true" >
+		<javac destdir="${dir.build}" includeantruntime="false" debug="true">
 			<classpath refid="classpath" />
 			<compilerarg value="-Xlint" />
 			<src path="src" />
@@ -158,7 +158,7 @@
 		<antcall target="compile" />
 
 		<copy file="${dir.src}/de/intranda/goobi/plugins.txt" todir="${dir.build}/de/intranda/goobi" />
-		
+
 		<echo>Generate Plugin list</echo>
 		<pathconvert property="plugins.project" pathsep=" ">
 			<mapper>
@@ -206,7 +206,7 @@
 	<target name="junit" depends="clean, createDirs, compile">
 
 		<copy file="${dir.src}/de/intranda/goobi/plugins.txt" todir="${dir.build}/de/intranda/goobi" />
-		
+
 		<javac destdir="${dir.build}" includeantruntime="false" debug="true">
 			<classpath refid="classpath-test" />
 			<compilerarg value="-Xlint" />
