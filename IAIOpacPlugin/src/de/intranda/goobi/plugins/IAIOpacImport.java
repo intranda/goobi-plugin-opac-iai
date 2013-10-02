@@ -461,9 +461,9 @@ public class IAIOpacImport implements IOpacPlugin {
                 DocStruct dsvolume = inDigDoc.createDocStruct(dstV);
                 topstruct.addChild(dsvolume);
             } catch (TypeNotAllowedForParentException e) {
-                e.printStackTrace();
+                myLogger.error(e);
             } catch (TypeNotAllowedAsChildException e) {
-                e.printStackTrace();
+                myLogger.error(e);
             }
         }
 
