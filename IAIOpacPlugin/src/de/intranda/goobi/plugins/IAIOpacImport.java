@@ -19,9 +19,10 @@
  */
 package de.intranda.goobi.plugins;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
-
 import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import net.xeoh.plugins.base.annotations.PluginImplementation;
@@ -34,6 +35,7 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.DOMBuilder;
 import org.jdom.output.DOMOutputter;
+import org.jdom.output.XMLOutputter;
 import org.w3c.dom.Node;
 
 import ugh.dl.DigitalDocument;
@@ -100,6 +102,8 @@ public class IAIOpacImport implements IOpacPlugin {
         Document myJdomDoc = new DOMBuilder().build(myHitlist.getOwnerDocument());
         Element myFirstHit = myJdomDoc.getRootElement().getChild("record");
 
+        changeSubject(myFirstHit);
+        
         /* von dem Treffer den Dokumententyp ermitteln */
         this.gattung = getGattung(myFirstHit);
 
@@ -123,6 +127,7 @@ public class IAIOpacImport implements IOpacPlugin {
                     myParentHitlist = this.coc.executeBeautifier(myParentHitlist);
                     /* Konvertierung in jdom-Elemente */
                     Document myJdomDocMultivolumeband = new DOMBuilder().build(myParentHitlist.getOwnerDocument());
+                   
 
                     /* Testausgabe */
                     // XMLOutputter outputter = new XMLOutputter();
@@ -140,7 +145,7 @@ public class IAIOpacImport implements IOpacPlugin {
                     // output);
                     myJdomDoc = myJdomDocMultivolumeband;
                     myFirstHit = myJdomDoc.getRootElement().getChild("record");
-
+                    changeSubject(myFirstHit);
                     /* die Jdom-Element wieder zurück zu Dom konvertieren */
                     DOMOutputter doutputter = new DOMOutputter();
                     myHitlist = doutputter.output(myJdomDocMultivolumeband);
@@ -196,10 +201,10 @@ public class IAIOpacImport implements IOpacPlugin {
          * -------------------------------- aus Opac-Ergebnis RDF-Datei erzeugen --------------------------------
          */
         /* XML in Datei schreiben */
-        //		 XMLOutputter outputter = new XMLOutputter();
-        //		 FileOutputStream output = new
-        //		 FileOutputStream("/home/robert/temp_opac.xml");
-        //		 outputter.output(myJdomDoc.getRootElement(), output);
+        		 XMLOutputter outputter = new XMLOutputter();
+        		 FileOutputStream output = new
+        		 FileOutputStream("/home/robert/temp_opac.xml");
+        		 outputter.output(myJdomDoc.getRootElement(), output);
 
         /* myRdf temporär in Datei schreiben */
         // myRdf.write("D:/temp.rdf.xml");
@@ -218,6 +223,32 @@ public class IAIOpacImport implements IOpacPlugin {
         checkMyOpacResult(ff.getDigitalDocument(), inPrefs, myFirstHit, verbose);
         // rdftemp.write("D:/PicaRdf.xml");
         return ff;
+    }
+
+    private void changeSubject(Element myFirstHit) {
+        List<Element> fieldList = myFirstHit.getChildren();
+        for (Element element : fieldList) {
+            if (element.getAttributeValue("tag") != null && element.getAttributeValue("tag").equals("244Z")) {
+                List<Element> subfieldList = element.getChildren();
+                Element code8 = null;
+                Element codeX = null;
+                for (Element subfield : subfieldList) {
+                    if (subfield.getAttributeValue("code").equals("8")) {
+                        code8 = subfield;
+                    } else if (subfield.getAttributeValue("code").equals("x")) {
+                        codeX = subfield;
+                    }
+                }
+                if (code8 != null && codeX != null) {
+                    if (codeX.getText().equals("01")) {
+                        element.setAttribute("tag", "244ZZ");
+                    }
+                    
+                }
+                
+            }
+        }
+                
     }
 
     /**
