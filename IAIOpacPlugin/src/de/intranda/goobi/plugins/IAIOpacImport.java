@@ -19,7 +19,6 @@
  */
 package de.intranda.goobi.plugins;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -35,7 +34,6 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.DOMBuilder;
 import org.jdom.output.DOMOutputter;
-import org.jdom.output.XMLOutputter;
 import org.w3c.dom.Node;
 
 import ugh.dl.DigitalDocument;
@@ -201,10 +199,10 @@ public class IAIOpacImport implements IOpacPlugin {
          * -------------------------------- aus Opac-Ergebnis RDF-Datei erzeugen --------------------------------
          */
         /* XML in Datei schreiben */
-        		 XMLOutputter outputter = new XMLOutputter();
-        		 FileOutputStream output = new
-        		 FileOutputStream("/home/robert/temp_opac.xml");
-        		 outputter.output(myJdomDoc.getRootElement(), output);
+//        		 XMLOutputter outputter = new XMLOutputter();
+//        		 FileOutputStream output = new
+//        		 FileOutputStream("/home/robert/temp_opac.xml");
+//        		 outputter.output(myJdomDoc.getRootElement(), output);
 
         /* myRdf temporär in Datei schreiben */
         // myRdf.write("D:/temp.rdf.xml");
