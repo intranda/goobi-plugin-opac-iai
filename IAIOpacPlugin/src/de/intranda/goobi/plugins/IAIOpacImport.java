@@ -201,7 +201,7 @@ public class IAIOpacImport implements IOpacPlugin {
         /* XML in Datei schreiben */
 //        		 XMLOutputter outputter = new XMLOutputter();
 //        		 FileOutputStream output = new
-//        		 FileOutputStream("/home/robert/temp_opac.xml");
+//        		 FileOutputStream("/tmp/temp_opac.xml");
 //        		 outputter.output(myJdomDoc.getRootElement(), output);
 
         /* myRdf temporär in Datei schreiben */
@@ -367,6 +367,9 @@ public class IAIOpacImport implements IOpacPlugin {
         if (myTitle == null || myTitle.length() == 0) {
             myTitle = getElementFieldValue(myFirstHit, "021B", "a");
         }
+        if (myTitle == null || myTitle.length() == 0) {
+            myTitle = getElementFieldValue(myFirstHit, "036F", "l");
+        }
         ughhelp.replaceMetadatum(topstruct, inPrefs, "TitleDocMain", myTitle.replaceAll("@", ""));
 
         /*
@@ -382,6 +385,17 @@ public class IAIOpacImport implements IOpacPlugin {
          */
         if (topstructChild != null && mySecondHit != null) {
             String fulltitleMulti = getElementFieldValue(mySecondHit, "021A", "a").replaceAll("@", "");
+            
+            /*
+             * wenn der Fulltittle nicht in dem Element stand, dann an anderer Stelle nachsehen (vor allem bei Contained-Work)
+             */
+            if (fulltitleMulti == null || fulltitleMulti.length() == 0) {
+                fulltitleMulti = getElementFieldValue(mySecondHit, "021B", "a");
+            }
+            if (fulltitleMulti == null || fulltitleMulti.length() == 0) {
+                fulltitleMulti = getElementFieldValue(mySecondHit, "036F", "l");
+            }
+            
             ughhelp.replaceMetadatum(topstructChild, inPrefs, "TitleDocMain", fulltitleMulti);
         }
 
@@ -449,7 +463,7 @@ public class IAIOpacImport implements IOpacPlugin {
         ughhelp.replaceMetadatum(boundbook, inPrefs, "shelfmarksource", sig.trim());
         if (sig.trim().length() == 0) {
             myLogger.debug("Signatur part 1: " + sig);
-            myLogger.debug(myFirstHit.getChildren());
+//            myLogger.debug(myFirstHit.getChildren());
             sig = getElementFieldValue(myFirstHit, "209A/01", "c");
             if (sig.length() > 0) {
                 sig = "<" + sig + ">";
