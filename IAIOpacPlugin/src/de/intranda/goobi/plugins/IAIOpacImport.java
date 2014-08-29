@@ -731,4 +731,13 @@ public class IAIOpacImport implements IOpacPlugin {
     public String getDescription() {
         return "IAI";
     }
+    
+    public void setAtstsl(String createAtstsl) {
+        atstsl = createAtstsl;
+    }
+
+    
+    public String getGattung() {
+        return gattung;
+    }
 }
