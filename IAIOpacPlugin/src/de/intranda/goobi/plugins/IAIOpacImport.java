@@ -29,11 +29,11 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 import org.apache.log4j.Logger;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
-import org.jdom.Attribute;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.DOMBuilder;
-import org.jdom.output.DOMOutputter;
+import org.jdom2.Attribute;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.DOMBuilder;
+import org.jdom2.output.DOMOutputter;
 import org.w3c.dom.Node;
 
 import ugh.dl.DigitalDocument;
