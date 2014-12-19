@@ -21,7 +21,6 @@ package de.intranda.goobi.plugins;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.StringTokenizer;
 
 import net.xeoh.plugins.base.annotations.PluginImplementation;
@@ -35,6 +34,7 @@ import org.jdom2.Element;
 import org.jdom2.input.DOMBuilder;
 import org.jdom2.output.DOMOutputter;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
@@ -68,7 +68,6 @@ public class IAIOpacImport implements IOpacPlugin {
      * @see de.sub.goobi.Import.IOpac#OpacToDocStruct(java.lang.String, java.lang.String, java.lang.String, ugh.dl.Prefs, boolean)
      */
     @Override
-    @SuppressWarnings("unchecked")
     public Fileformat search(String inSuchfeld, String inSuchbegriff, ConfigOpacCatalogue catalogue, Prefs inPrefs) throws Exception {
         /*
          * -------------------------------- Katalog auswählen --------------------------------
@@ -100,8 +99,8 @@ public class IAIOpacImport implements IOpacPlugin {
         Document myJdomDoc = new DOMBuilder().build(myHitlist.getOwnerDocument());
         Element myFirstHit = myJdomDoc.getRootElement().getChild("record");
 
-        changeSubject(myFirstHit);
-        
+        changeSubject(myHitlist);
+
         /* von dem Treffer den Dokumententyp ermitteln */
         this.gattung = getGattung(myFirstHit);
 
@@ -121,11 +120,11 @@ public class IAIOpacImport implements IOpacPlugin {
                 /* wenn ein Treffer des Parents im Opac gefunden wurde */
                 if (myOpac.getNumberOfHits(myQuery) == 1) {
                     Node myParentHitlist = myOpac.retrievePicaNode(myQuery, 1);
+                    changeSubject(myParentHitlist);
                     /* Opac-Beautifier aufrufen */
                     myParentHitlist = this.coc.executeBeautifier(myParentHitlist);
                     /* Konvertierung in jdom-Elemente */
                     Document myJdomDocMultivolumeband = new DOMBuilder().build(myParentHitlist.getOwnerDocument());
-                   
 
                     /* Testausgabe */
                     // XMLOutputter outputter = new XMLOutputter();
@@ -143,7 +142,7 @@ public class IAIOpacImport implements IOpacPlugin {
                     // output);
                     myJdomDoc = myJdomDocMultivolumeband;
                     myFirstHit = myJdomDoc.getRootElement().getChild("record");
-                    changeSubject(myFirstHit);
+
                     /* die Jdom-Element wieder zurück zu Dom konvertieren */
                     DOMOutputter doutputter = new DOMOutputter();
                     myHitlist = doutputter.output(myJdomDocMultivolumeband);
@@ -199,10 +198,10 @@ public class IAIOpacImport implements IOpacPlugin {
          * -------------------------------- aus Opac-Ergebnis RDF-Datei erzeugen --------------------------------
          */
         /* XML in Datei schreiben */
-//        		 XMLOutputter outputter = new XMLOutputter();
-//        		 FileOutputStream output = new
-//        		 FileOutputStream("/tmp/temp_opac.xml");
-//        		 outputter.output(myJdomDoc.getRootElement(), output);
+        //        		 XMLOutputter outputter = new XMLOutputter();
+        //        		 FileOutputStream output = new
+        //        		 FileOutputStream("/tmp/temp_opac.xml");
+        //        		 outputter.output(myJdomDoc.getRootElement(), output);
 
         /* myRdf temporär in Datei schreiben */
         // myRdf.write("D:/temp.rdf.xml");
@@ -223,30 +222,24 @@ public class IAIOpacImport implements IOpacPlugin {
         return ff;
     }
 
-    private void changeSubject(Element myFirstHit) {
-        List<Element> fieldList = myFirstHit.getChildren();
-        for (Element element : fieldList) {
-            if (element.getAttributeValue("tag") != null && element.getAttributeValue("tag").equals("244Z")) {
-                List<Element> subfieldList = element.getChildren();
-                Element code8 = null;
-                Element codeX = null;
-                for (Element subfield : subfieldList) {
-                    if (subfield.getAttributeValue("code").equals("8")) {
-                        code8 = subfield;
-                    } else if (subfield.getAttributeValue("code").equals("x")) {
-                        codeX = subfield;
+    private void changeSubject(Node hit) {
+        org.w3c.dom.Element record = (org.w3c.dom.Element) hit;
+        NodeList nl = record.getElementsByTagName("field");
+
+        for (int x = 0; x < nl.getLength(); x++) {
+            org.w3c.dom.Element domElement = (org.w3c.dom.Element) nl.item(x);
+            String tag = domElement.getAttribute("tag");
+            if (tag.equals("244Z")) {
+                NodeList subelements = domElement.getElementsByTagName("subfield");
+                for (int y = 0; y < subelements.getLength(); y++) {
+                    org.w3c.dom.Element subElement = (org.w3c.dom.Element) subelements.item(y);
+                    if (subElement.getAttribute("code").equals("S") && subElement.getTextContent().equals("g")) {
+                        domElement.setAttribute("tag", "245Z");
                     }
                 }
-                if (code8 != null && codeX != null) {
-                    if (codeX.getText().equals("01")) {
-                        element.setAttribute("tag", "244ZZ");
-                    }
-                    
-                }
-                
+
             }
         }
-                
     }
 
     /**
@@ -255,7 +248,6 @@ public class IAIOpacImport implements IOpacPlugin {
      * @param inHit
      * @return
      */
-    @SuppressWarnings("unchecked")
     private String getGattung(Element inHit) {
 
         for (Iterator<Element> iter = inHit.getChildren().iterator(); iter.hasNext();) {
@@ -269,7 +261,6 @@ public class IAIOpacImport implements IOpacPlugin {
         return "";
     }
 
-    @SuppressWarnings("unchecked")
     private String getSubelementValue(Element inElement, String attributeValue) {
         String rueckgabe = "";
 
@@ -288,7 +279,6 @@ public class IAIOpacImport implements IOpacPlugin {
      * @param inElement
      * @return
      */
-    @SuppressWarnings("unchecked")
     private String getPpnFromParent(Element inHit, String inFeldName, String inSubElement) {
         for (Iterator<Element> iter = inHit.getChildren().iterator(); iter.hasNext();) {
             Element tempElement = iter.next();
@@ -385,7 +375,7 @@ public class IAIOpacImport implements IOpacPlugin {
          */
         if (topstructChild != null && mySecondHit != null) {
             String fulltitleMulti = getElementFieldValue(mySecondHit, "021A", "a").replaceAll("@", "");
-            
+
             /*
              * wenn der Fulltittle nicht in dem Element stand, dann an anderer Stelle nachsehen (vor allem bei Contained-Work)
              */
@@ -395,7 +385,7 @@ public class IAIOpacImport implements IOpacPlugin {
             if (fulltitleMulti == null || fulltitleMulti.length() == 0) {
                 fulltitleMulti = getElementFieldValue(mySecondHit, "036F", "l");
             }
-            
+
             ughhelp.replaceMetadatum(topstructChild, inPrefs, "TitleDocMain", fulltitleMulti);
         }
 
@@ -463,7 +453,7 @@ public class IAIOpacImport implements IOpacPlugin {
         ughhelp.replaceMetadatum(boundbook, inPrefs, "shelfmarksource", sig.trim());
         if (sig.trim().length() == 0) {
             myLogger.debug("Signatur part 1: " + sig);
-//            myLogger.debug(myFirstHit.getChildren());
+            //            myLogger.debug(myFirstHit.getChildren());
             sig = getElementFieldValue(myFirstHit, "209A/01", "c");
             if (sig.length() > 0) {
                 sig = "<" + sig + ">";
@@ -574,7 +564,6 @@ public class IAIOpacImport implements IOpacPlugin {
         return myAtsTsl;
     }
 
-    @SuppressWarnings("unchecked")
     private Element getElementFromChildren(Element inHit, String inTagName) {
         for (Iterator<Element> iter2 = inHit.getChildren().iterator(); iter2.hasNext();) {
             Element myElement = iter2.next();
@@ -594,7 +583,6 @@ public class IAIOpacImport implements IOpacPlugin {
      * rekursives Kopieren von Elementen, weil das Einfügen eines Elements an einen anderen Knoten mit dem Fehler abbricht, dass das einzufügende
      * Element bereits einen Parent hat ================================================================
      */
-    @SuppressWarnings("unchecked")
     private Element getCopyFromJdomElement(Element inHit) {
         Element myElement = new Element(inHit.getName());
         myElement.setText(inHit.getText());
@@ -616,7 +604,6 @@ public class IAIOpacImport implements IOpacPlugin {
         return myElement;
     }
 
-    @SuppressWarnings("unchecked")
     private String getElementFieldValue(Element myFirstHit, String inFieldName, String inAttributeName) {
 
         for (Iterator<Element> iter2 = myFirstHit.getChildren().iterator(); iter2.hasNext();) {
@@ -632,7 +619,6 @@ public class IAIOpacImport implements IOpacPlugin {
         return "";
     }
 
-    @SuppressWarnings("unchecked")
     private String getFieldValue(Element inElement, String attributeValue) {
         String rueckgabe = "";
 
@@ -731,12 +717,11 @@ public class IAIOpacImport implements IOpacPlugin {
     public String getDescription() {
         return "IAI";
     }
-    
+
     public void setAtstsl(String createAtstsl) {
         atstsl = createAtstsl;
     }
 
-    
     public String getGattung() {
         return gattung;
     }
