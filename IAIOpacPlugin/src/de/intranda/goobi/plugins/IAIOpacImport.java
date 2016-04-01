@@ -76,8 +76,8 @@ public class IAIOpacImport implements IOpacPlugin {
         if (this.coc == null) {
             throw new IOException("Catalogue not found: " + coc.getTitle() + ", please check Configuration in goobi_opac.xml");
         }
-        Catalogue cat =
-                new Catalogue(this.coc.getDescription(), this.coc.getAddress(), this.coc.getPort(), this.coc.getCbs(), this.coc.getDatabase());
+        Catalogue cat = new Catalogue(this.coc.getDescription(), this.coc.getAddress(), this.coc.getPort(), this.coc.getCbs(), this.coc
+                .getDatabase());
         if (verbose) {
             Helper.setMeldung(null, Helper.getTranslation("CatalogueUsage") + ": ", this.coc.getDescription());
         }
@@ -307,7 +307,7 @@ public class IAIOpacImport implements IOpacPlugin {
     private void checkMyOpacResult(DigitalDocument inDigDoc, Prefs inPrefs, Element myFirstHit, boolean verbose) {
         UghHelper ughhelp = new UghHelper();
         DocStruct topstruct = inDigDoc.getLogicalDocStruct();
-        DocStruct boundbook = inDigDoc.getPhysicalDocStruct();
+        //        DocStruct boundbook = inDigDoc.getPhysicalDocStruct();
         DocStruct topstructChild = null;
         Element mySecondHit = null;
 
@@ -427,13 +427,21 @@ public class IAIOpacImport implements IOpacPlugin {
          * -------------------------------- Copyright --------------------------------
          */
         String copyright = getElementFieldValue(myFirstHit, "037I", "a");
-        ughhelp.replaceMetadatum(boundbook, inPrefs, "copyrightimageset", copyright);
+        if (topstructChild != null) {
+            ughhelp.replaceMetadatum(topstructChild, inPrefs, "copyrightimageset", copyright);
+        } else {
+            ughhelp.replaceMetadatum(topstruct, inPrefs, "copyrightimageset", copyright);
+        }
 
         /*
          * -------------------------------- Format --------------------------------
          */
         String format = getElementFieldValue(myFirstHit, "034I", "a");
-        ughhelp.replaceMetadatum(boundbook, inPrefs, "FormatSourcePrint", format);
+        if (topstructChild != null) {
+            ughhelp.replaceMetadatum(topstructChild, inPrefs, "FormatSourcePrint", format);
+        } else {
+            ughhelp.replaceMetadatum(topstruct, inPrefs, "FormatSourcePrint", format);
+        }
 
         /*
          * -------------------------------- Umfang --------------------------------
@@ -450,7 +458,12 @@ public class IAIOpacImport implements IOpacPlugin {
         }
         sig += getElementFieldValue(myFirstHit, "209A", "f") + " ";
         sig += getElementFieldValue(myFirstHit, "209A", "a");
-        ughhelp.replaceMetadatum(boundbook, inPrefs, "shelfmarksource", sig.trim());
+
+        if (topstructChild != null) {
+            ughhelp.replaceMetadatum(topstructChild, inPrefs, "shelfmarksource", sig.trim());
+        } else {
+            ughhelp.replaceMetadatum(topstruct, inPrefs, "shelfmarksource", sig.trim());
+        }
         if (sig.trim().length() == 0) {
             myLogger.debug("Signatur part 1: " + sig);
             //            myLogger.debug(myFirstHit.getChildren());
@@ -464,7 +477,11 @@ public class IAIOpacImport implements IOpacPlugin {
                 sig += getElementFieldValue(mySecondHit, "209A", "f") + " ";
                 sig += getElementFieldValue(mySecondHit, "209A", "a");
             }
-            ughhelp.replaceMetadatum(boundbook, inPrefs, "shelfmarksource", sig.trim());
+            if (topstructChild != null) {
+                ughhelp.replaceMetadatum(topstructChild, inPrefs, "shelfmarksource", sig.trim());
+            } else {
+                ughhelp.replaceMetadatum(topstruct, inPrefs, "shelfmarksource", sig.trim());
+            }
         }
         myLogger.debug("Signatur full: " + sig);
 
