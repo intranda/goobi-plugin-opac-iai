@@ -449,42 +449,7 @@ public class IAIOpacImport implements IOpacPlugin {
         String umfang = getElementFieldValue(myFirstHit, "034D", "a");
         ughhelp.replaceMetadatum(topstruct, inPrefs, "SizeSourcePrint", umfang);
 
-        /*
-         * -------------------------------- Signatur --------------------------------
-         */
-        String sig = getElementFieldValue(myFirstHit, "209A", "c");
-        if (sig.length() > 0) {
-            sig = "<" + sig + ">";
-        }
-        sig += getElementFieldValue(myFirstHit, "209A", "f") + " ";
-        sig += getElementFieldValue(myFirstHit, "209A", "a");
-
-        if (topstructChild != null) {
-            ughhelp.replaceMetadatum(topstructChild, inPrefs, "shelfmarksource", sig.trim());
-        } else {
-            ughhelp.replaceMetadatum(topstruct, inPrefs, "shelfmarksource", sig.trim());
-        }
-        if (sig.trim().length() == 0) {
-            myLogger.debug("Signatur part 1: " + sig);
-            //            myLogger.debug(myFirstHit.getChildren());
-            sig = getElementFieldValue(myFirstHit, "209A/01", "c");
-            if (sig.length() > 0) {
-                sig = "<" + sig + ">";
-            }
-            sig += getElementFieldValue(myFirstHit, "209A/01", "f") + " ";
-            sig += getElementFieldValue(myFirstHit, "209A/01", "a");
-            if (mySecondHit != null) {
-                sig += getElementFieldValue(mySecondHit, "209A", "f") + " ";
-                sig += getElementFieldValue(mySecondHit, "209A", "a");
-            }
-            if (topstructChild != null) {
-                ughhelp.replaceMetadatum(topstructChild, inPrefs, "shelfmarksource", sig.trim());
-            } else {
-                ughhelp.replaceMetadatum(topstruct, inPrefs, "shelfmarksource", sig.trim());
-            }
-        }
-        myLogger.debug("Signatur full: " + sig);
-
+        
         /*
          * -------------------------------- Ats Tsl Vorbereitung --------------------------------
          */
@@ -730,7 +695,7 @@ public class IAIOpacImport implements IOpacPlugin {
         return "IAI";
     }
 
-    @Override
+    
     public String getDescription() {
         return "IAI";
     }
