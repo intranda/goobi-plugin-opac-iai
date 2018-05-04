@@ -449,7 +449,6 @@ public class IAIOpacImport implements IOpacPlugin {
         String umfang = getElementFieldValue(myFirstHit, "034D", "a");
         ughhelp.replaceMetadatum(topstruct, inPrefs, "SizeSourcePrint", umfang);
 
-        
         /*
          * -------------------------------- Ats Tsl Vorbereitung --------------------------------
          */
@@ -621,68 +620,27 @@ public class IAIOpacImport implements IOpacPlugin {
         return this.atstsl;
     }
 
-    /*
-     * ##################################################### ##################################################### ## ## Publikationstypen aus der
-     * Konfiguration auslesen ## ##################################################### ####################################################
-     */
+    
 
-    // public boolean isMonograph() {
-    // if (gattung != null && config.getParameter("docTypeMonograph",
-    // "").contains(gattung.substring(0, 2)))
-    // return true;
-    // else
-    // return false;
-    // }
-    // public boolean isPeriodical() {
-    // if (gattung != null && config.getParameter("docTypePeriodical",
-    // "").contains(gattung.substring(0, 2)))
-    // return true;
-    // else
-    // return false;
-    // }
-    //
-    // public boolean isMultivolume() {
-    // if (gattung != null && config.getParameter("docTypeMultivolume",
-    // "").contains(gattung.substring(0, 2)))
-    // return true;
-    // else
-    // return false;
-    // }
-    //
-    // public boolean isContainedWork() {
-    // if (gattung != null
-    // && config.getParameter("docTypeContainedWork",
-    // "").contains(gattung.substring(0, 2)))
-    // return true;
-    // else
-    // return false;
-    // }
     /* (non-Javadoc)
      * @see de.sub.goobi.Import.IOpac#getOpacDocType(boolean)
      */
     @Override
     public ConfigOpacDoctype getOpacDocType() {
-        try {
-            ConfigOpac co = new ConfigOpac();
-            ConfigOpacDoctype cod = co.getDoctypeByMapping(this.gattung.substring(0, 2), this.coc.getTitle());
-            if (cod == null) {
-                if (verbose) {
-                    Helper.setFehlerMeldung(Helper.getTranslation("CatalogueUnKnownType") + ": ", this.gattung);
-                }
-                cod = new ConfigOpac().getAllDoctypes().get(0);
-                this.gattung = cod.getMappings().get(0);
-                if (verbose) {
-                    Helper.setFehlerMeldung(Helper.getTranslation("CatalogueChangeDocType") + ": ", this.gattung + " - " + cod.getTitle());
-                }
-            }
-            return cod;
-        } catch (IOException e) {
-            myLogger.error("OpacDoctype unknown", e);
+        ConfigOpac co = ConfigOpac.getInstance();
+        ConfigOpacDoctype cod = co.getDoctypeByMapping(this.gattung.substring(0, 2), this.coc.getTitle());
+        if (cod == null) {
             if (verbose) {
-                Helper.setFehlerMeldung(Helper.getTranslation("CatalogueUnKnownType"), e);
+                Helper.setFehlerMeldung(Helper.getTranslation("CatalogueUnKnownType") + ": ", this.gattung);
             }
-            return null;
+            cod = co.getAllDoctypes().get(0);
+            this.gattung = cod.getMappings().get(0);
+            if (verbose) {
+                Helper.setFehlerMeldung(Helper.getTranslation("CatalogueChangeDocType") + ": ", this.gattung + " - " + cod.getTitle());
+            }
         }
+        return cod;
+
     }
 
     @Override
@@ -695,7 +653,6 @@ public class IAIOpacImport implements IOpacPlugin {
         return "IAI";
     }
 
-    
     public String getDescription() {
         return "IAI";
     }
