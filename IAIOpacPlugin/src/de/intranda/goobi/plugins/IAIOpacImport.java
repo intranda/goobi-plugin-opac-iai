@@ -387,19 +387,18 @@ public class IAIOpacImport implements IOpacPlugin {
             }
 
             ughhelp.replaceMetadatum(topstructChild, inPrefs, "TitleDocMain", fulltitleMulti);
+            
+            if (fulltitleMulti != null) {
+                String sortingTitleMulti = fulltitleMulti;
+                if (sortingTitleMulti.indexOf("@") != -1) {
+                    sortingTitleMulti = sortingTitleMulti.substring(sortingTitleMulti.indexOf("@") + 1);
+                }
+                ughhelp.replaceMetadatum(topstructChild, inPrefs, "TitleDocMainShort", sortingTitleMulti);
+                
+            }
         }
 
-        /*
-         * -------------------------------- bei multivolumes den Sorting-Titel mit Umlaut-Konvertierung --------------------------------
-         */
-        if (topstructChild != null && mySecondHit != null) {
-            String sortingTitleMulti = getElementFieldValue(mySecondHit, "021A", "a");
-            if (sortingTitleMulti.indexOf("@") != -1) {
-                sortingTitleMulti = sortingTitleMulti.substring(sortingTitleMulti.indexOf("@") + 1);
-            }
-            ughhelp.replaceMetadatum(topstructChild, inPrefs, "TitleDocMainShort", sortingTitleMulti);
-            // sortingTitle = sortingTitleMulti;
-        }
+    
 
         /*
          * -------------------------------- Sprachen - Konvertierung auf zwei Stellen --------------------------------
