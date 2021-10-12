@@ -6,7 +6,7 @@
   <properties>
     <jar.name>plugin_intranda_opac_iai</jar.name>
     <dest.folder>/opt/digiverso/goobi/plugins/opac/</dest.folder>
-    <goobi.version>21.08.3</goobi.version>
+    <goobi.version>21.09</goobi.version>
   </properties>
   <distributionManagement>
     <repository>
@@ -104,10 +104,9 @@
       <version>4.12</version>
       <scope>test</scope>
     </dependency>
-</dependencies>
-      <scm>
+  </dependencies>
+  <scm>
     <url>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-opac-iai.git</url>
     <connection>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-opac-iai.git</connection>
   </scm>
-
 </project>
