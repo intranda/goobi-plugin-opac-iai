@@ -7,7 +7,7 @@
     <relativePath />
   </parent>
   <groupId>io.goobi.workflow.plugin</groupId>
-  <artifactId>plugin-opac-pica</artifactId>
+  <artifactId>plugin-opac-iai</artifactId>
   <packaging>pom</packaging>
   <modules>
     <module>module-base</module>
