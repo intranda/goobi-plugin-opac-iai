@@ -5,6 +5,6 @@
 		<exec executable="mvn">
 			<arg value="package" />
 		</exec>
-		<copy file="target/plugin_intranda_opac_iai.jar" todir="/opt/digiverso/goobi/plugins/opac/"/>
+		<copy file="module-base/target/plugin-opac-iai-base.jar" todir="/opt/digiverso/goobi/plugins/opac/"/>
 	</target>
 </project>

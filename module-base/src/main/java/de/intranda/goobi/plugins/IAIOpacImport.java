@@ -1,8 +1,8 @@
 /**
  * This file is part of the pica opac import plugin for the Goobi Application - a Workflow tool for the support of mass digitization.
  * 
- * Visit the websites for more information. 
- *          - http://digiverso.com 
+ * Visit the websites for more information.
+ *          - http://digiverso.com
  *          - http://www.intranda.com
  * 
  * Copyright 2011 - 2013, intranda GmbH, Göttingen
@@ -19,11 +19,9 @@
  */
 package de.intranda.goobi.plugins;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.StringTokenizer;
-
-import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 import org.apache.log4j.Logger;
 import org.goobi.production.enums.PluginType;
@@ -33,9 +31,19 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.DOMBuilder;
 import org.jdom2.output.DOMOutputter;
+import org.jdom2.output.XMLOutputter;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.UghHelper;
+import de.unigoettingen.sub.search.opac.Catalogue;
+import de.unigoettingen.sub.search.opac.ConfigOpac;
+import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
+import de.unigoettingen.sub.search.opac.ConfigOpacDoctype;
+import de.unigoettingen.sub.search.opac.GetOpac;
+import de.unigoettingen.sub.search.opac.Query;
+import net.xeoh.plugins.base.annotations.PluginImplementation;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
 import ugh.dl.DocStructType;
@@ -45,17 +53,14 @@ import ugh.exceptions.TypeNotAllowedAsChildException;
 import ugh.exceptions.TypeNotAllowedForParentException;
 import ugh.fileformats.mets.XStream;
 import ugh.fileformats.opac.PicaPlus;
-import de.sub.goobi.helper.Helper;
-import de.sub.goobi.helper.UghHelper;
-import de.unigoettingen.sub.search.opac.Catalogue;
-import de.unigoettingen.sub.search.opac.ConfigOpac;
-import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
-import de.unigoettingen.sub.search.opac.ConfigOpacDoctype;
-import de.unigoettingen.sub.search.opac.GetOpac;
-import de.unigoettingen.sub.search.opac.Query;
 
 @PluginImplementation
 public class IAIOpacImport implements IOpacPlugin {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -5478238706483875305L;
+
     private static final Logger myLogger = Logger.getLogger(IAIOpacImport.class);
 
     private int hitcount;
@@ -63,6 +68,9 @@ public class IAIOpacImport implements IOpacPlugin {
     private String atstsl;
     ConfigOpacCatalogue coc;
     private boolean verbose = false;
+
+    // set this to true to save raw opac result in /tmp folder
+    private boolean debugResult = false;
 
     /* (non-Javadoc)
      * @see de.sub.goobi.Import.IOpac#OpacToDocStruct(java.lang.String, java.lang.String, java.lang.String, ugh.dl.Prefs, boolean)
@@ -183,8 +191,7 @@ public class IAIOpacImport implements IOpacPlugin {
                      */
                     if (myFirstHitParent.getChildren() != null) {
 
-                        for (Iterator<Element> iter = myFirstHitParent.getChildren().iterator(); iter.hasNext();) {
-                            Element ele = iter.next();
+                        for (Element ele : myFirstHitParent.getChildren()) {
                             if (getElementFromChildren(myFirstHit, ele.getAttributeValue("tag")) == null) {
                                 myFirstHit.getChildren().add(getCopyFromJdomElement(ele));
                             }
@@ -198,11 +205,11 @@ public class IAIOpacImport implements IOpacPlugin {
          * -------------------------------- aus Opac-Ergebnis RDF-Datei erzeugen --------------------------------
          */
         /* XML in Datei schreiben */
-        //        		 XMLOutputter outputter = new XMLOutputter();
-        //        		 FileOutputStream output = new
-        //        		 FileOutputStream("/tmp/temp_opac.xml");
-        //        		 outputter.output(myJdomDoc.getRootElement(), output);
-
+        if (debugResult) {
+            XMLOutputter outputter = new XMLOutputter();
+            FileOutputStream output = new FileOutputStream("/tmp/temp_opac.xml");
+            outputter.output(myJdomDoc.getRootElement(), output);
+        }
         /* myRdf temporär in Datei schreiben */
         // myRdf.write("D:/temp.rdf.xml");
 
@@ -229,11 +236,11 @@ public class IAIOpacImport implements IOpacPlugin {
         for (int x = 0; x < nl.getLength(); x++) {
             org.w3c.dom.Element domElement = (org.w3c.dom.Element) nl.item(x);
             String tag = domElement.getAttribute("tag");
-            if (tag.equals("244Z")) {
+            if ("244Z".equals(tag)) {
                 NodeList subelements = domElement.getElementsByTagName("subfield");
                 for (int y = 0; y < subelements.getLength(); y++) {
                     org.w3c.dom.Element subElement = (org.w3c.dom.Element) subelements.item(y);
-                    if (subElement.getAttribute("code").equals("S") && subElement.getTextContent().equals("g")) {
+                    if ("S".equals(subElement.getAttribute("code")) && "g".equals(subElement.getTextContent())) {
                         domElement.setAttribute("tag", "245Z");
                     }
                 }
@@ -250,11 +257,10 @@ public class IAIOpacImport implements IOpacPlugin {
      */
     private String getGattung(Element inHit) {
 
-        for (Iterator<Element> iter = inHit.getChildren().iterator(); iter.hasNext();) {
-            Element tempElement = iter.next();
+        for (Element tempElement : inHit.getChildren()) {
             String feldname = tempElement.getAttributeValue("tag");
             // System.out.println(feldname);
-            if (feldname.equals("002@")) {
+            if ("002@".equals(feldname)) {
                 return getSubelementValue(tempElement, "0");
             }
         }
@@ -264,8 +270,7 @@ public class IAIOpacImport implements IOpacPlugin {
     private String getSubelementValue(Element inElement, String attributeValue) {
         String rueckgabe = "";
 
-        for (Iterator<Element> iter = inElement.getChildren().iterator(); iter.hasNext();) {
-            Element subElement = iter.next();
+        for (Element subElement : inElement.getChildren()) {
             if (subElement.getAttributeValue("code").equals(attributeValue)) {
                 rueckgabe = subElement.getValue();
             }
@@ -280,8 +285,7 @@ public class IAIOpacImport implements IOpacPlugin {
      * @return
      */
     private String getPpnFromParent(Element inHit, String inFeldName, String inSubElement) {
-        for (Iterator<Element> iter = inHit.getChildren().iterator(); iter.hasNext();) {
-            Element tempElement = iter.next();
+        for (Element tempElement : inHit.getChildren()) {
             String feldname = tempElement.getAttributeValue("tag");
             // System.out.println(feldname);
             if (feldname.equals(inFeldName)) {
@@ -320,7 +324,7 @@ public class IAIOpacImport implements IOpacPlugin {
                 topstructChild = topstruct.getAllChildren().get(0);
             } catch (RuntimeException e) {
             }
-            mySecondHit = (Element) myFirstHit.getParentElement().getChildren().get(1);
+            mySecondHit = myFirstHit.getParentElement().getChildren().get(1);
         }
 
         /*
@@ -360,7 +364,7 @@ public class IAIOpacImport implements IOpacPlugin {
         if (myTitle == null || myTitle.length() == 0) {
             myTitle = getElementFieldValue(myFirstHit, "036F", "l");
         }
-        ughhelp.replaceMetadatum(topstruct, inPrefs, "TitleDocMain", myTitle.replaceAll("@", ""));
+        ughhelp.replaceMetadatum(topstruct, inPrefs, "TitleDocMain", myTitle.replace("@", ""));
 
         /*
          * -------------------------------- Sorting-Titel mit Umlaut-Konvertierung --------------------------------
@@ -374,7 +378,7 @@ public class IAIOpacImport implements IOpacPlugin {
          * -------------------------------- bei multivolumes den Main-Title bereinigen --------------------------------
          */
         if (topstructChild != null && mySecondHit != null) {
-            String fulltitleMulti = getElementFieldValue(mySecondHit, "021A", "a").replaceAll("@", "");
+            String fulltitleMulti = getElementFieldValue(mySecondHit, "021A", "a").replace("@", "");
 
             /*
              * wenn der Fulltittle nicht in dem Element stand, dann an anderer Stelle nachsehen (vor allem bei Contained-Work)
@@ -387,18 +391,16 @@ public class IAIOpacImport implements IOpacPlugin {
             }
 
             ughhelp.replaceMetadatum(topstructChild, inPrefs, "TitleDocMain", fulltitleMulti);
-            
+
             if (fulltitleMulti != null) {
                 String sortingTitleMulti = fulltitleMulti;
                 if (sortingTitleMulti.indexOf("@") != -1) {
                     sortingTitleMulti = sortingTitleMulti.substring(sortingTitleMulti.indexOf("@") + 1);
                 }
                 ughhelp.replaceMetadatum(topstructChild, inPrefs, "TitleDocMainShort", sortingTitleMulti);
-                
+
             }
         }
-
-    
 
         /*
          * -------------------------------- Sprachen - Konvertierung auf zwei Stellen --------------------------------
@@ -452,14 +454,14 @@ public class IAIOpacImport implements IOpacPlugin {
          * -------------------------------- Ats Tsl Vorbereitung --------------------------------
          */
         myTitle = myTitle.toLowerCase();
-        myTitle = myTitle.replaceAll("&", "");
+        myTitle = myTitle.replace("&", "");
 
         /*
          * -------------------------------- bei nicht-Zeitschriften Ats berechnen --------------------------------
          */
         // if (!gattung.startsWith("ab") && !gattung.startsWith("ob")) {
         String autor = getElementFieldValue(myFirstHit, "028A", "a").toLowerCase();
-        if (autor == null || autor.equals("")) {
+        if (autor == null || "".equals(autor)) {
             autor = getElementFieldValue(myFirstHit, "028A", "8").toLowerCase();
         }
         this.atstsl = createAtstsl(myTitle, autor);
@@ -473,9 +475,7 @@ public class IAIOpacImport implements IOpacPlugin {
                 DocStructType dstV = inPrefs.getDocStrctTypeByName("PeriodicalVolume");
                 DocStruct dsvolume = inDigDoc.createDocStruct(dstV);
                 topstruct.addChild(dsvolume);
-            } catch (TypeNotAllowedForParentException e) {
-                myLogger.error(e);
-            } catch (TypeNotAllowedAsChildException e) {
+            } catch (TypeNotAllowedForParentException | TypeNotAllowedAsChildException e) {
                 myLogger.error(e);
             }
         }
@@ -488,7 +488,7 @@ public class IAIOpacImport implements IOpacPlugin {
     @Override
     public String createAtstsl(String myTitle, String autor) {
         String myAtsTsl = "";
-        if (autor != null && !autor.equals("")) {
+        if (autor != null && !"".equals(autor)) {
             /* autor */
             if (autor.length() > 4) {
                 myAtsTsl = autor.substring(0, 4);
@@ -508,7 +508,7 @@ public class IAIOpacImport implements IOpacPlugin {
          * -------------------------------- bei Zeitschriften Tsl berechnen --------------------------------
          */
         // if (gattung.startsWith("ab") || gattung.startsWith("ob")) {
-        if (autor == null || autor.equals("")) {
+        if (autor == null || "".equals(autor)) {
             myAtsTsl = "";
             StringTokenizer tokenizer = new StringTokenizer(myTitle);
             int counter = 1;
@@ -545,8 +545,7 @@ public class IAIOpacImport implements IOpacPlugin {
     }
 
     private Element getElementFromChildren(Element inHit, String inTagName) {
-        for (Iterator<Element> iter2 = inHit.getChildren().iterator(); iter2.hasNext();) {
-            Element myElement = iter2.next();
+        for (Element myElement : inHit.getChildren()) {
             String feldname = myElement.getAttributeValue("tag");
             // System.out.println(feldname);
             /*
@@ -568,16 +567,14 @@ public class IAIOpacImport implements IOpacPlugin {
         myElement.setText(inHit.getText());
         /* jetzt auch alle Attribute übernehmen */
         if (inHit.getAttributes() != null) {
-            for (Iterator<Attribute> iter = inHit.getAttributes().iterator(); iter.hasNext();) {
-                Attribute att = iter.next();
+            for (Attribute att : inHit.getAttributes()) {
                 myElement.getAttributes().add(new Attribute(att.getName(), att.getValue()));
             }
         }
         /* jetzt auch alle Children übernehmen */
         if (inHit.getChildren() != null) {
 
-            for (Iterator<Element> iter = inHit.getChildren().iterator(); iter.hasNext();) {
-                Element ele = iter.next();
+            for (Element ele : inHit.getChildren()) {
                 myElement.addContent(getCopyFromJdomElement(ele));
             }
         }
@@ -586,8 +583,7 @@ public class IAIOpacImport implements IOpacPlugin {
 
     private String getElementFieldValue(Element myFirstHit, String inFieldName, String inAttributeName) {
 
-        for (Iterator<Element> iter2 = myFirstHit.getChildren().iterator(); iter2.hasNext();) {
-            Element myElement = iter2.next();
+        for (Element myElement : myFirstHit.getChildren()) {
             String feldname = myElement.getAttributeValue("tag");
             /*
              * wenn es das gesuchte Feld ist, dann den Wert mit dem passenden Attribut zurückgeben
@@ -602,8 +598,7 @@ public class IAIOpacImport implements IOpacPlugin {
     private String getFieldValue(Element inElement, String attributeValue) {
         String rueckgabe = "";
 
-        for (Iterator<Element> iter = inElement.getChildren().iterator(); iter.hasNext();) {
-            Element subElement = iter.next();
+        for (Element subElement : inElement.getChildren()) {
             if (subElement.getAttributeValue("code").equals(attributeValue)) {
                 rueckgabe = subElement.getValue();
             }
@@ -618,8 +613,6 @@ public class IAIOpacImport implements IOpacPlugin {
     public String getAtstsl() {
         return this.atstsl;
     }
-
-    
 
     /* (non-Javadoc)
      * @see de.sub.goobi.Import.IOpac#getOpacDocType(boolean)
@@ -656,10 +649,12 @@ public class IAIOpacImport implements IOpacPlugin {
         return "IAI";
     }
 
+    @Override
     public void setAtstsl(String createAtstsl) {
         atstsl = createAtstsl;
     }
 
+    @Override
     public String getGattung() {
         return gattung;
     }
