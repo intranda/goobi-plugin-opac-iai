@@ -1,6 +1,9 @@
 # Goobi workflow Plugin: goobi-plugin-opac-iai
 
-<img src="https://goobi.io/wp-content/uploads/logo_goobi_plugin.png" align="right" style="margin:0 0 20px 20px;" alt="Plugin for Goobi workflow" width="175" height="109">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://goobi.io/logo_goobi_workflow_dark.png">
+  <img src="https://goobi.io/logo_goobi_workflow.png" align="right" alt="Plugin for Goobi workflow" width="240" height="132" hspace="20" vspace="10">
+</picture>
 
 This OPAC plugin for Goobi workflow allows to create Goobi processes by requesting pica records from the LBS system of the IAI to import volumes/issues of periodicals/newspaper.
 
